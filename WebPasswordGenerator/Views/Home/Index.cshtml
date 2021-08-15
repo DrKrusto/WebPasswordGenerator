@@ -8,7 +8,7 @@
         <input class="form-control" id="tb_softwareName" placeholder="Entrez le nom du site" />
     </div>
     <label for="div_parameters" class="font-weight-bold">Paramètres</label>
-    <div class="container-fluid pt-2 pb-3 border rounded " id="div_parameters">
+    <div class="container-fluid pt-2 border rounded " id="div_parameters">
         <div class="form-group">
             <label for="sl_typeOfGeneration" class="small">Type de génération de mot de passe</label>
             <select id="sl_typeOfGeneration" class="form-control form-control-sm">
@@ -16,25 +16,34 @@
                 <option value="2">Complexe</option>
             </select>
         </div>
-        <div class="form-row">
-            <div class="col-8">
-                <label for="tb_firstHalfOfPassword" class="small">Première partie du mot de passe</label>
-                <div class="input-group">
-                    <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe" />
-                    <div class="input-group-append">
-                        <button class="btn btn-secondary btn-sm input-group-button" id="btn_showFirstHalf" value="false">Show</button>
+        <div class="form-group">
+            <div class="form-row">
+                <div class="col-8">
+                    <label for="tb_firstHalfOfPassword" class="small">Première partie du mot de passe</label>
+                    <div class="input-group">
+                        <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe" />
+                        <div class="input-group-append">
+                            <button class="btn btn-secondary btn-sm input-group-button" id="btn_showFirstHalf" value="false">Show</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <div class="col">
-                <label for="tb_specialCharacter" class="small">Caractère spécial</label>
-                <input maxlength="1" class="form-control form-control-sm" id="tb_specialCharacter" placeholder="Entrez un caractère spécial" />
-            </div>
-            <div class="col">
-                <label for="tb_numberOfNumbers" class="small">Nombre de chiffres max.</label>
-                <input type="number" min="0" class="form-control form-control-sm" id="tb_numberOfNumbers" placeholder="Entrez un nombre" />
+                <div class="col">
+                    <label for="tb_specialCharacter" class="small">Caractère spécial</label>
+                    <input maxlength="1" class="form-control form-control-sm" id="tb_specialCharacter" placeholder="Entrez un caractère spécial" />
+                </div>
+                <div class="col">
+                    <label for="tb_numberOfNumbers" class="small">Nombre de chiffres max.</label>
+                    <input type="number" min="0" class="form-control form-control-sm" id="tb_numberOfNumbers" placeholder="Entrez un nombre" />
+                </div>
             </div>
         </div>
+        <div class="form-group">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="cb_rememberPassword" />
+                <label class="form-check-label">Ne pas oublier la première partie du mot de passe</label>
+            </div>
+        </div>
+
     </div>
     <button class="btn btn-primary mt-3 float-right" id="btn_generatePassword">
         Générer le mot de passe
@@ -63,6 +72,56 @@
             $("#tb_firstHalfOfPassword").attr("type", "text");
         }
     });
+
+    $("input,select").on("input", function () {
+        switch ($(this).attr("id")) {
+            case "cb_rememberPassword":
+                if ($(this).prop("checked")) {
+                    localStorage.setItem($("#tb_firstHalfOfPassword").attr("id"), $("#tb_firstHalfOfPassword").val())
+                }
+                else {
+                    localStorage.setItem($("#tb_firstHalfOfPassword").attr("id"), "")
+                }
+                localStorage.setItem($(this).attr("id"), $(this).prop("checked"));
+                break;
+            case "tb_firstHalfOfPassword":
+                if (!$("#cb_rememberPassword").prop("checked")) {
+                    localStorage.setItem($(this).attr("id"), "");
+                    break;
+                }
+            case "sl_typeOfGeneration":
+            case "tb_specialCharacter":
+            case "tb_numberOfNumbers":
+                localStorage.setItem($(this).attr("id"), $(this).val());
+                break;
+            default:
+                break;
+        }
+    });
+
+    function FillAllInputs() {
+        if (localStorage.getItem("tb_firstHalfOfPassword")) {
+            $("#tb_firstHalfOfPassword").val(localStorage.getItem("tb_firstHalfOfPassword"));
+        }
+        if (localStorage.getItem("tb_specialCharacter")) {
+            $("#tb_specialCharacter").val(localStorage.getItem("tb_specialCharacter"));
+        }
+        if (localStorage.getItem("tb_numberOfNumbers")) {
+            $("#tb_numberOfNumbers").val(localStorage.getItem("tb_numberOfNumbers"));
+        }
+        if (localStorage.getItem("sl_typeOfGeneration")) {
+            $("#sl_typeOfGeneration").val(localStorage.getItem("sl_typeOfGeneration"));
+        }
+        if (localStorage.getItem("cb_rememberPassword")) {
+            var boolean = localStorage.getItem("cb_rememberPassword").toLowerCase();
+            if (boolean == "true")
+                $("#cb_rememberPassword").prop("checked", true);
+            else
+                $("#cb_rememberPassword").prop("checked", false);
+        }
+    }
+
+    FillAllInputs();
 </script>
 
 <script>
@@ -80,7 +139,6 @@
         var generatedPassword = $("#tb_firstHalfOfPassword").val();
         switch (typeOfGeneration) {
             case "1":
-
                 generatedPassword += TransferLettersToNumbers(softwareName.substring(0, 3));
                 generatedPassword += softwareName.substring(3, 4).toUpperCase();
                 generatedPassword += $("#tb_specialCharacter").val();
