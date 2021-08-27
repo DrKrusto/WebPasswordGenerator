@@ -21,7 +21,7 @@
                 <div class="col-8">
                     <label for="tb_firstHalfOfPassword" class="small">Première partie du mot de passe</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe" />
+                        <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe"/>
                         <div class="input-group-append">
                             <button class="btn btn-secondary btn-sm input-group-button" id="btn_showFirstHalf" value="false">Show</button>
                         </div>
@@ -77,18 +77,18 @@
         switch ($(this).attr("id")) {
             case "cb_rememberPassword":
                 if ($(this).prop("checked")) {
-                    localStorage.setItem($("#tb_firstHalfOfPassword").attr("id"), $("#tb_firstHalfOfPassword").val())
+                    RememberPassword($("#tb_firstHalfOfPassword").val());
                 }
                 else {
-                    localStorage.setItem($("#tb_firstHalfOfPassword").attr("id"), "")
+                    RememberPassword("");
                 }
                 localStorage.setItem($(this).attr("id"), $(this).prop("checked"));
                 break;
             case "tb_firstHalfOfPassword":
-                if (!$("#cb_rememberPassword").prop("checked")) {
-                    localStorage.setItem($(this).attr("id"), "");
-                    break;
+                if ($("#cb_rememberPassword").prop("checked")) {
+                    RememberPassword($(this).val());
                 }
+                break;
             case "sl_typeOfGeneration":
             case "tb_specialCharacter":
             case "tb_numberOfNumbers":
@@ -99,10 +99,19 @@
         }
     });
 
+    function RememberPassword(password) {
+        $.ajax({
+            type: "POST",
+            url: "@Url.Action("RememberPassword")",
+            data: { cookieValue: password },
+            dataType: "text",
+            error: function () {
+                console.log("Couldn't remember the password.");
+            }
+        });
+    }
+
     function FillAllInputs() {
-        if (localStorage.getItem("tb_firstHalfOfPassword")) {
-            $("#tb_firstHalfOfPassword").val(localStorage.getItem("tb_firstHalfOfPassword"));
-        }
         if (localStorage.getItem("tb_specialCharacter")) {
             $("#tb_specialCharacter").val(localStorage.getItem("tb_specialCharacter"));
         }
@@ -117,7 +126,10 @@
             if (boolean == "true")
                 $("#cb_rememberPassword").prop("checked", true);
             else
-                $("#cb_rememberPassword").prop("checked", false);
+               $("#cb_rememberPassword").prop("checked", false);
+        }
+        if ($("#cb_rememberPassword").prop("checked") == true) {
+            $("#tb_firstHalfOfPassword").val("@ViewData["FirstHalfOfPassword"]");
         }
     }
 
@@ -134,32 +146,16 @@
     $("#btn_generatePassword").click(function () {
         var softwareName = $("#tb_softwareName").val();
         var half = $("#tb_firstHalfOfPassword").val();
+        var specialChar = $("#tb_specialCharacter").val();
         var maxAmountOfNumbers = $("#tb_numberOfNumbers").val();
         var typeOfGeneration = $("#sl_typeOfGeneration").val();
-        var generatedPassword = $("#tb_firstHalfOfPassword").val();
+        var generatedPassword;
         switch (typeOfGeneration) {
             case "1":
-                generatedPassword += TransferLettersToNumbers(softwareName.substring(0, 3));
-                generatedPassword += softwareName.substring(3, 4).toUpperCase();
-                generatedPassword += $("#tb_specialCharacter").val();
+                generatedPassword = GViewDatanerateSimplePassword(softwareName, half, specialChar);
                 break;
             case "2":
-                var numbersLength = "";
-                var higher = "";
-                if (softwareName.length > half.length)
-                    for (var i = 0; i < half.length; i++) {
-                        numbersLength += half[i] + softwareName[i];
-                    }
-                else
-                    for (var i = 0; i < softwareName.length; i++) {
-                        numbersLength += softwareName[i] + half[i];
-                    }
-                numbersLength = TransferLettersToNumbers(numbersLength);
-                if (maxAmountOfNumbers < numbersLength.length)
-                    numbersLength = numbersLength.slice(0, maxAmountOfNumbers);
-                generatedPassword += numbersLength;
-                generatedPassword += GetMostUsedLetter(softwareName.concat(half));
-                generatedPassword += $("#tb_specialCharacter").val();
+                generatedPassword = GenerateComplexPassword(softwareName, half, specialChar, maxAmountOfNumbers)
                 break;
             default:
                 break;
@@ -293,10 +289,31 @@
     }
 
     function GenerateSimplePassword(softwareName, firstHalfOfPassword, specialChar) {
-        return null;
+        var generatedPassword = firstHalfOfPassword;
+        generatedPassword += TransferLettersToNumbers(softwareName.substring(0, 3));
+        generatedPassword += softwareName.substring(3, 4).toUpperCase();
+        generatedPassword += specialChar;
+        return generatedPassword;
     }
 
-    function GenerateComplexPassword(softwareName, firstHalfOfPassword, specialChar) {
-        return null;
+    function GenerateComplexPassword(softwareName, firstHalfOfPassword, specialChar, maxAmountOfNumbers) {
+        var generatedPassword = firstHalfOfPassword;
+        var numbersLength = "";
+        var higher = "";
+        if (softwareName.length > firstHalfOfPassword.length)
+            for (var i = 0; i < firstHalfOfPassword.length; i++) {
+                numbersLength += firstHalfOfPassword[i] + softwareName[i];
+            }
+        else
+            for (var i = 0; i < softwareName.length; i++) {
+                numbersLength += softwareName[i] + firstHalfOfPassword[i];
+            }
+        numbersLength = TransferLettersToNumbers(numbersLength);
+        if (maxAmountOfNumbers < numbersLength.length)
+            numbersLength = numbersLength.slice(0, maxAmountOfNumbers);
+        generatedPassword += numbersLength;
+        generatedPassword += GetMostUsedLetter(softwareName.concat(firstHalfOfPassword));
+        generatedPassword += specialChar;
+        return generatedPassword;
     }
 </script>

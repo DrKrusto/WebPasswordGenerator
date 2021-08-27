@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -20,12 +21,22 @@ namespace WebPasswordGenerator.Controllers
 
         public IActionResult Index()
         {
+            ViewData.Add(new KeyValuePair<string, object>("FirstHalfOfPassword", Request.Cookies["firstHalfOfPassword"]));
             return View();
         }
 
         public IActionResult Privacy()
         {
             return View();
+        }
+
+        [HttpPost]
+        public void RememberPassword(string cookieValue)
+        {
+            if (cookieValue == null)
+                cookieValue = "";
+            CookieOptions cookieOptions = new CookieOptions() { SameSite = SameSiteMode.Strict, Secure = true, Expires = DateTime.Now.AddDays(500) };
+            Response.Cookies.Append("firstHalfOfPassword", cookieValue, cookieOptions);
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
