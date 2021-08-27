@@ -23,7 +23,9 @@
                     <div class="input-group">
                         <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe"/>
                         <div class="input-group-append">
-                            <button class="btn btn-secondary btn-sm input-group-button" id="btn_showFirstHalf" value="false">Show</button>
+                            <button class="btn btn-secondary btn-sm input-group-button" id="btn_showFirstHalf" value="false">
+                                <i id="i_show" class="fas fa-eye"></i>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -63,12 +65,14 @@
     $("#btn_showFirstHalf").click(function () {
         if ($(this).attr("value") == "true") {
             $(this).attr("value", "false");
-            $(this).text("Show");
+            $("#i_show").removeClass("fa-eye-slash");
+            $("#i_show").addClass("fa-eye");
             $("#tb_firstHalfOfPassword").attr("type", "password");
         }
         else {
             $(this).attr("value", "true");
-            $(this).text("Hide");
+            $("#i_show").removeClass("fa-eye");
+            $("#i_show").addClass("fa-eye-slash");
             $("#tb_firstHalfOfPassword").attr("type", "text");
         }
     });
