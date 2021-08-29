@@ -21,7 +21,7 @@
                 <div class="col-8">
                     <label for="tb_firstHalfOfPassword" class="small">Première partie du mot de passe</label>
                     <div class="input-group">
-                        <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe"/>
+                        <input type="password" class="form-control form-control-sm" id="tb_firstHalfOfPassword" placeholder="Entrez la première partie du mot de passe" />
                         <div class="input-group-append">
                             <button class="btn btn-secondary btn-sm input-group-button" id="btn_showFirstHalf" value="false">
                                 <i id="i_show" class="fas fa-eye"></i>
@@ -45,7 +45,20 @@
                 <label class="form-check-label">Ne pas oublier la première partie du mot de passe</label>
             </div>
         </div>
-
+        <div class="form-group">
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="generationSideRadios" id="r_clientSideGeneration" value="clientSide" checked>
+                <label class="form-check-label" for="r_clientSideGeneration">
+                    Génération côté client
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="generationSideRadios" id="r_serverSideGeneration" value="serverSide">
+                <label class="form-check-label" for="r_serverSideGeneration">
+                    Génération côté serveur
+                </label>
+            </div>
+        </div>
     </div>
     <button class="btn btn-primary mt-3 float-right" id="btn_generatePassword">
         Générer le mot de passe
@@ -156,7 +169,7 @@
         var generatedPassword;
         switch (typeOfGeneration) {
             case "1":
-                generatedPassword = GViewDatanerateSimplePassword(softwareName, half, specialChar);
+                generatedPassword = GenerateSimplePassword(softwareName, half, specialChar);
                 break;
             case "2":
                 generatedPassword = GenerateComplexPassword(softwareName, half, specialChar, maxAmountOfNumbers)
@@ -294,30 +307,70 @@
 
     function GenerateSimplePassword(softwareName, firstHalfOfPassword, specialChar) {
         var generatedPassword = firstHalfOfPassword;
-        generatedPassword += TransferLettersToNumbers(softwareName.substring(0, 3));
-        generatedPassword += softwareName.substring(3, 4).toUpperCase();
-        generatedPassword += specialChar;
+        if ($("#r_clientSideGeneration").prop("checked")) {
+            generatedPassword += TransferLettersToNumbers(softwareName.substring(0, 3));
+            generatedPassword += softwareName.substring(3, 4).toUpperCase();
+            generatedPassword += specialChar;
+        }
+        else {
+            $.ajax({
+                async: false,
+                type: "GET",
+                url: "@Url.Action("GenerateSimplePassword")",
+                dataType: "json",
+                data: { firstHalfOfPassword: firstHalfOfPassword, softwareName: softwareName, specialChar: specialChar },
+                success: function (response) {
+                    $("body").append('<input id="tempSimpleGeneration" style="opacity:0"/>');
+                    $("#tempSimpleGeneration").val(response.password);
+                },
+                error: function () {
+                    console.log("Couldn't generate the password.");
+                }
+            });
+            generatedPassword = $("#tempSimpleGeneration").val();
+            $("#tempSimpleGeneration").remove();
+        }
         return generatedPassword;
     }
 
     function GenerateComplexPassword(softwareName, firstHalfOfPassword, specialChar, maxAmountOfNumbers) {
         var generatedPassword = firstHalfOfPassword;
-        var numbersLength = "";
-        var higher = "";
-        if (softwareName.length > firstHalfOfPassword.length)
-            for (var i = 0; i < firstHalfOfPassword.length; i++) {
-                numbersLength += firstHalfOfPassword[i] + softwareName[i];
-            }
-        else
-            for (var i = 0; i < softwareName.length; i++) {
-                numbersLength += softwareName[i] + firstHalfOfPassword[i];
-            }
-        numbersLength = TransferLettersToNumbers(numbersLength);
-        if (maxAmountOfNumbers < numbersLength.length)
-            numbersLength = numbersLength.slice(0, maxAmountOfNumbers);
-        generatedPassword += numbersLength;
-        generatedPassword += GetMostUsedLetter(softwareName.concat(firstHalfOfPassword));
-        generatedPassword += specialChar;
+        if ($("#r_clientSideGeneration").prop("checked")) {
+            var numbersLength = "";
+            var higher = "";
+            if (softwareName.length > firstHalfOfPassword.length)
+                for (var i = 0; i < firstHalfOfPassword.length; i++) {
+                    numbersLength += firstHalfOfPassword[i] + softwareName[i];
+                }
+            else
+                for (var i = 0; i < softwareName.length; i++) {
+                    numbersLength += softwareName[i] + firstHalfOfPassword[i];
+                }
+            numbersLength = TransferLettersToNumbers(numbersLength);
+            if (maxAmountOfNumbers < numbersLength.length)
+                numbersLength = numbersLength.slice(0, maxAmountOfNumbers);
+            generatedPassword += numbersLength;
+            generatedPassword += GetMostUsedLetter(softwareName.concat(firstHalfOfPassword));
+            generatedPassword += specialChar;
+        }
+        else {
+            $.ajax({
+                async: false,
+                type: "GET",
+                url: "@Url.Action("GenerateComplexPassword")",
+                dataType: "json",
+                data: { firstHalfOfPassword: firstHalfOfPassword, softwareName: softwareName, specialChar: specialChar, maxAmountOfNumbers: maxAmountOfNumbers },
+                success: function (response) {
+                    $("body").append('<input id="tempComplexGeneration" style="opacity:0"/>');
+                    $("#tempComplexGeneration").val(response.password);
+                },
+                error: function () {
+                    console.log("Couldn't generate the password.");
+                }
+            });
+            generatedPassword = $("#tempComplexGeneration").val();
+            $("#tempComplexGeneration").remove();
+        }
         return generatedPassword;
     }
 </script>
