@@ -14,9 +14,32 @@
             <select id="sl_typeOfGeneration" class="form-control form-control-sm">
                 <option value="1">Simple</option>
                 <option value="2">Complexe</option>
+                <option value="3">Aléatoire</option>
             </select>
         </div>
-        <div class="form-group">
+        <div class="form-group random-generation">
+            <label for="tb_passwordLength" class="small">Longueur du mot de passe</label>
+            <input type="number" min="0" max="100" class="form-control form-control-sm" id="tb_passwordLength" placeholder="Entrez un nombre" />
+        </div>
+        <div class="form-group random-generation">
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="cb_includeLowerCase" />
+                <label class="form-check-label">Inclure des lettres minuscules</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="cb_includeUpperCase" />
+                <label class="form-check-label">Inclure des lettres majuscules</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="cb_includeNumbers" />
+                <label class="form-check-label">Inclure des nombres</label>
+            </div>
+            <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="cb_includeSymbols" />
+                <label class="form-check-label">Inclure des symboles</label>
+            </div>
+        </div>
+        <div class="form-group fixed-generation">
             <div class="form-row">
                 <div class="col-8">
                     <label for="tb_firstHalfOfPassword" class="small">Première partie du mot de passe</label>
@@ -39,7 +62,7 @@
                 </div>
             </div>
         </div>
-        <div class="form-group">
+        <div class="form-group fixed-generation">
             <div class="form-check">
                 <input type="checkbox" class="form-check-input" id="cb_rememberPassword" />
                 <label class="form-check-label">Ne pas oublier la première partie du mot de passe</label>
@@ -75,6 +98,10 @@
 
 
 <script>
+    FillAllInputs();
+    SimpleIsSelected();
+    ChangeParametersLayout($("#sl_typeOfGeneration"));
+
     $("#btn_showFirstHalf").click(function () {
         if ($(this).attr("value") == "true") {
             $(this).attr("value", "false");
@@ -107,6 +134,10 @@
                 }
                 break;
             case "sl_typeOfGeneration":
+                SimpleIsSelected();
+                ChangeParametersLayout($(this));
+                localStorage.setItem($(this).attr("id"), $(this).val());
+                break;
             case "tb_specialCharacter":
             case "tb_numberOfNumbers":
                 localStorage.setItem($(this).attr("id"), $(this).val());
@@ -115,6 +146,19 @@
                 break;
         }
     });
+
+    function ChangeParametersLayout(generationSelect) {
+        if ($(generationSelect).val() == 3) {
+            $(".fixed-generation").hide();
+            $(".random-generation").show();
+            $("#tb_softwareName").prop("disabled", true);
+        }
+        else {
+            $(".fixed-generation").show();
+            $(".random-generation").hide();
+            $("#tb_softwareName").prop("disabled", false);
+        }
+    }
 
     function RememberPassword(password) {
         $.ajax({
@@ -149,16 +193,6 @@
             $("#tb_firstHalfOfPassword").val("@ViewData["FirstHalfOfPassword"]");
         }
     }
-
-    FillAllInputs();
-</script>
-
-<script>
-    SimpleIsSelected();
-
-    $("#sl_typeOfGeneration").change(function () {
-        SimpleIsSelected();
-    });
 
     $("#btn_generatePassword").click(function () {
         var softwareName = $("#tb_softwareName").val();
