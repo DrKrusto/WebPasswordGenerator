@@ -13,6 +13,7 @@ namespace WebPasswordGenerator.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
+        private Random randomizer;
 
         public HomeController(ILogger<HomeController> logger)
         {
@@ -29,6 +30,55 @@ namespace WebPasswordGenerator.Controllers
         {
             return View();
         }
+
+        private List<string> InsertParametersIntoDictionary(Dictionary<string, bool> parametersConditions) //parametersConditions contains the string of parameter (numbers, symbols...) and a boolean which tells if it must be incorporated into the dictionary
+        {
+            List<string> parametersString = new List<string>();
+            foreach (KeyValuePair<string, bool> parameter in parametersConditions)
+            {
+                if (parameter.Value)
+                {
+                    parametersString.Add(parameter.Key);
+                }
+            }
+            return parametersString;
+        }
+
+        [HttpGet]
+        public JsonResult GenerateRandomPassword(int passwordLength, bool allowLowerCase, bool allowUpperCase, bool allowNumbers, bool allowSymbols)
+        {
+            string generatedPassword = "";
+            randomizer = new Random();
+            if (passwordLength > 100)
+            {
+                return new JsonResult(new
+                {
+                    Error = "Password length parameter is beyond 100."
+                });
+            }
+            else
+            {
+                string lowerCase = "azertyuiopqsdfghjklmwxcvbn";
+                string upperCase = "AZERTYUIOPQSDFGHJKLMWXCVBN";
+                string numbers = "1234567890";
+                string symbols = "&é~\"#'{([-|è`_\\ç^à@)]=¨$£¤ù%*µ,?;.:/!§<>²";
+                Dictionary<string, bool> parametersCondition = new Dictionary<string, bool>();
+                parametersCondition.Add(lowerCase, allowLowerCase);
+                parametersCondition.Add(upperCase, allowUpperCase);
+                parametersCondition.Add(numbers, allowNumbers);
+                parametersCondition.Add(symbols, allowSymbols);
+                List<string> parameters = this.InsertParametersIntoDictionary(parametersCondition);
+                for (int i = 0; i < passwordLength; i++)
+                {
+                    string parameter = parameters[randomizer.Next(0, parameters.Count)]; //we get a random parameter
+                    char letter = parameter[randomizer.Next(0, parameter.Length)]; //we get a random char in this parameter
+                    generatedPassword += letter.ToString();
+                }
+            }
+            return new JsonResult(new { 
+                Password = generatedPassword
+            });
+        } 
 
         [HttpGet]
         public JsonResult GenerateSimplePassword(string firstHalfOfPassword, string softwareName, string specialChar)

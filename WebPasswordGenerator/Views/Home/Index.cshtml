@@ -208,6 +208,8 @@
             case "2":
                 generatedPassword = GenerateComplexPassword(softwareName, half, specialChar, maxAmountOfNumbers)
                 break;
+            case "3":
+                generatedPassword = GenerateRandomPassword($("#tb_passwordLength").val(), $("#cb_includeLowerCase").prop("checked"), $("#cb_includeUpperCase").prop("checked"), $("#cb_includeNumbers").prop("checked"), $("#cb_includeSymbols").prop("checked"));
             default:
                 break;
         }
@@ -337,6 +339,38 @@
             }
         }
         return numbers;
+    }
+
+    function GenerateRandomPassword(passwordLength, allowLowerCase, allowUpperCase, allowNumbers, allowSymbols) {
+        var generatedPassword;
+        if ($("#r_clientSideGeneration").prop("checked")) {
+            //wip
+        }
+        else {
+            $.ajax({
+                async: false,
+                type: "GET",
+                url: "@Url.Action("GenerateRandomPassword")",
+                dataType: "json",
+                data: {
+                    passwordLength: passwordLength,
+                    allowLowerCase: allowLowerCase,
+                    allowUpperCase: allowUpperCase,
+                    allowNumbers: allowNumbers,
+                    allowSymbols: allowSymbols
+                },
+                success: function (response) {
+                    $("body").append('<input id="tempRandomGeneration" style="opacity:0"/>');
+                    $("#tempRandomGeneration").val(response.password);
+                },
+                error: function () {
+                    console.log("Couldn't generate the password.");
+                }
+            });
+            generatedPassword = $("#tempRandomGeneration").val();
+            $("#tempRandomGeneration").remove();
+        }
+        return generatedPassword;
     }
 
     function GenerateSimplePassword(softwareName, firstHalfOfPassword, specialChar) {
