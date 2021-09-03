@@ -342,8 +342,37 @@
     }
 
     function GenerateRandomPassword(passwordLength, allowLowerCase, allowUpperCase, allowNumbers, allowSymbols) {
-        var generatedPassword;
+        var generatedPassword = "";
         if ($("#r_clientSideGeneration").prop("checked")) {
+            var parameters = new Object();
+            var lowerCase = "azertyuiopqsdfghjklmwxcvbn";
+            var upperCase = "AZERTYUIOPQSDFGHJKLMWXCVBN";
+            var numbers = "1234567890";
+            var symbols = "&é~\"#'{([-|è`_\\ç^à\)]=¨$£¤ù%*µ,?;.:/!§<>²";
+            var count = 0;
+            if (allowLowerCase) {
+                count++;
+                parameters[count] = lowerCase;
+            }
+            if (allowUpperCase) {
+                count++;
+                parameters[count] = upperCase;
+            }
+            if (allowNumbers) {
+                count++;
+                parameters[count] = numbers;
+            }
+            if (allowSymbols) {
+                count++;
+                parameters[count] = symbols;
+            }
+            for (var i = 0; i < passwordLength; i++) {
+                var randomValue = Math.floor(Math.random() * count) + 1;
+                var parameter = parameters[randomValue];
+                randomValue = Math.floor(Math.random() * parameter.length);
+                var letter = parameter[randomValue];
+                generatedPassword += letter;
+            }
             //wip
         }
         else {
